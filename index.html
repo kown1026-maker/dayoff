@@ -1,0 +1,624 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E67E22">
+<title>한의원 연월차 신청</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root {
+  --orange:#E67E22;
+  --orange-dark:#C96713;
+  --orange-pale:#FFF2E5;
+  --ink:#282521;
+  --muted:#77736D;
+  --line:#EAE6E0;
+  --bg:#FAF9F6;
+  --green:#238458;
+  --red:#C74A42;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:Pretendard,-apple-system,BlinkMacSystemFont,sans-serif;
+ font-size:16px;line-height:1.55}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+button:focus-visible,input:focus-visible{outline:3px solid #E67E2250;outline-offset:2px}
+.wrap{width:min(1100px,calc(100% - 36px));margin:auto}
+header{height:70px;background:white;border-bottom:1px solid var(--line)}
+.nav{height:100%;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:20px;font-weight:850;letter-spacing:-.6px}
+.brand-mark{color:var(--orange);margin-right:8px}
+.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:750;transition:.15s}
+.primary{background:var(--orange);color:white}
+.primary:hover:not(:disabled){background:var(--orange-dark)}
+.light{background:#F1EFEB;color:#49443E}
+.outline{background:white;border:1px solid var(--line);color:var(--ink)}
+.small{padding:8px 12px;font-size:14px}
+.hero{padding:42px 0 34px;background:linear-gradient(125deg,#FFF1E1,#FAF7F0)}
+.eyebrow{color:#B96119;font-weight:800;font-size:13px;letter-spacing:1.2px}
+h1{font-size:clamp(30px,4.5vw,46px);line-height:1.17;letter-spacing:-1.8px;margin:12px 0}
+.hero p{margin:0;color:#6F6255;font-size:17px}
+.chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+.chip{padding:8px 12px;border-radius:9px;background:#FFFFFFB8;border:1px solid #F1DDC7;font-size:14px}
+main{padding:24px 0 42px}
+.panel{background:white;border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:18px}
+.panel-title{font-size:20px;font-weight:850;letter-spacing:-.5px;margin:0}
+.muted{color:var(--muted);font-size:14px;margin:5px 0 0}
+.open-panel{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;background:#FFFCF8;border-color:#F5DCC4}
+.clock{width:54px;height:54px;display:grid;place-items:center;background:var(--orange);color:white;border-radius:50%;font-size:25px}
+.open-title{font-weight:800;color:var(--orange-dark);font-size:18px}
+.open-state{font-size:14px;color:var(--muted);margin-top:5px}
+.countdown{display:flex;gap:8px;text-align:center}
+.timebox{min-width:52px}
+.timebox strong{display:block;font-size:22px;color:var(--orange);background:white;border:1px solid #F0D5BC;border-radius:8px;padding:3px}
+.timebox span{font-size:12px;color:var(--muted)}
+.login-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-top:18px}
+input{width:100%;min-width:0;border:1px solid #DCD8D1;background:white;border-radius:10px;padding:13px 14px}
+input:focus{border-color:var(--orange)}
+.login-hint,.feedback{font-size:13px;color:var(--muted);margin-top:12px}
+.feedback.error{color:var(--red)}
+.feedback.success{color:var(--green)}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+.month-control{display:flex;align-items:center;gap:12px}
+.month-control strong{font-size:20px;min-width:125px;text-align:center}
+.arrow{width:38px;height:38px;background:white;border:1px solid var(--line);border-radius:10px;font-size:23px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:15px}
+.legend i{width:8px;height:8px;display:inline-block;border-radius:50%;margin-right:5px}
+.weekdays,.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.weekdays div{text-align:center;font-size:13px;font-weight:700;color:#706B64;padding:9px}
+.weekdays div:first-child{color:var(--red)}
+.weekdays div:last-child{color:#3973BC}
+.day{min-width:0;min-height:125px;background:white;border:1px solid var(--line);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;gap:8px}
+.day.empty{background:transparent;border-color:transparent}
+.day.selected{border:2px solid var(--orange);padding:9px 7px;background:#FFF8F0}
+.day-num{font-weight:850;font-size:15px}
+.sunday .day-num{color:var(--red)}
+.saturday .day-num{color:#3973BC}
+.day-desc{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.day-tag{font-size:12px;text-align:center;border-radius:7px;padding:5px 2px;background:#F0EFEC;color:#777}
+.day-tag.open{background:#E5F4EB;color:#23754D}
+.day-tag.mine{background:var(--orange-pale);color:#A65310}
+.day button{margin-top:auto;width:100%;padding:8px 3px;font-size:12px;white-space:normal}
+.notice{padding:12px 14px;border-radius:10px;background:#F8F6F2;color:#6D665E;font-size:13px;margin-top:15px}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.bottom-grid .panel{margin:0}
+ul.rules{padding-left:18px;font-size:13px;color:#6F6A63}
+ul.rules li{margin:7px 0}
+.selected-list{list-style:none;padding:0;margin:14px 0}
+.selected-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #F0EDE8;font-size:14px}
+.remove{border:0;background:transparent;color:var(--red);font-size:12px}
+.total{display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-weight:800}
+.total strong{font-size:22px;color:var(--orange-dark)}
+.full{width:100%}
+.empty-text{text-align:center;padding:20px 0;color:var(--muted);font-size:14px}
+.admin-panel{background:#FBFAF8;border-style:dashed}
+.admin-grid{display:grid;gap:10px;margin-top:15px}
+.admin-buttons{display:flex;gap:8px}
+.admin-buttons button{flex:1}
+.hidden{display:none!important}
+footer{background:#292723;color:#D0CCC5;padding:20px;text-align:center;font-size:12px}
+#toast{position:fixed;z-index:99;left:50%;bottom:24px;transform:translateX(-50%);
+ background:#292723;color:white;border-radius:12px;padding:13px 18px;
+ width:max-content;max-width:calc(100% - 30px);box-shadow:0 8px 24px #0002}
+@media(max-width:768px){
+ .wrap{width:calc(100% - 24px)}
+ header{height:62px}
+ .brand{font-size:18px}
+ .hero{padding:30px 0}
+ .hero p{font-size:16px}
+ main{padding-top:14px}
+ .panel{padding:18px 14px;margin-bottom:14px;border-radius:15px}
+ .open-panel{grid-template-columns:auto 1fr;gap:12px}
+ .countdown{grid-column:1/-1;justify-content:center;padding-top:8px}
+ .login-grid{grid-template-columns:1fr}
+ .login-grid button{min-height:48px}
+ .calendar-head{align-items:flex-start;flex-direction:column}
+ .month-control{align-self:center}
+ .weekdays{display:none}
+ .calendar{grid-template-columns:1fr;gap:8px}
+ .day.empty{display:none}
+ .day{min-height:0;display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:8px;padding:12px}
+ .day.selected{padding:11px}
+ .day-num{grid-column:1;grid-row:1}
+ .day-desc{grid-column:2;grid-row:1;font-size:14px}
+ .day-tag{grid-column:2;grid-row:2;text-align:left;width:max-content;padding:4px 9px}
+ .day button{grid-column:3;grid-row:1 / span 2;min-width:95px;width:auto;margin:0;padding:10px 8px;font-size:14px}
+ .bottom-grid{grid-template-columns:1fr}
+ .chips{gap:7px}
+ .chip{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="brand-mark">✳</span>한의원 연월차 신청</div>
+    <button id="adminToggle" class="btn outline small" type="button">⚙ 관리자 모드</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">STAFF LEAVE RESERVATION</div>
+    <h1>연월차 선착순 신청</h1>
+    <p>소중한 휴식 시간을 미리 계획하세요.<br>원하는 날짜를 선택하고 간편하게 신청할 수 있습니다.</p>
+    <div class="chips">
+      <span class="chip">🗓️ 신청 대상 <b id="targetLabel">불러오는 중</b></span>
+      <span class="chip">⏰ 매월 1일 오전 9시 오픈</span>
+      <span class="chip">👤 날짜별 1명</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="panel open-panel">
+    <div class="clock">◷</div>
+    <div>
+      <div class="open-title">다음 달 연월차 신청 오픈 안내</div>
+      <div class="open-state" id="openMessage">오픈 상태를 확인하고 있습니다.</div>
+      <div class="feedback" id="openDateText"></div>
+    </div>
+    <div class="countdown" id="countdown">
+      <div class="timebox"><strong>--</strong><span>일</span></div>
+      <div class="timebox"><strong>--</strong><span>시간</span></div>
+      <div class="timebox"><strong>--</strong><span>분</span></div>
+      <div class="timebox"><strong>--</strong><span>초</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">◉ 간편 로그인</h2>
+    <p class="muted">이름과 휴대폰 번호를 입력하면 바로 로그인됩니다.</p>
+    <form id="loginForm" class="login-grid">
+      <input id="nameInput" maxlength="30" placeholder="이름 (아이디)" autocomplete="name" required>
+      <input id="phoneInput" maxlength="20" type="tel" placeholder="휴대폰 번호 (예: 01012345678)" autocomplete="tel" required>
+      <button class="btn primary" type="submit">로그인하기</button>
+    </form>
+    <div id="loginFeedback" class="feedback">※ 단독 HTML 버전은 입력 형식만 확인하며 실제 본인 인증을 수행하지 않습니다.</div>
+    <button id="logoutBtn" class="btn light small hidden" type="button">로그아웃</button>
+  </section>
+
+  <div class="bottom-grid" style="grid-template-columns:minmax(0,1fr)">
+    <section class="panel">
+      <div class="calendar-head">
+        <div>
+          <h2 class="panel-title">▦ 연월차 신청하기</h2>
+          <p class="muted">신청 가능한 날짜를 선택해 주세요.</p>
+        </div>
+        <div class="month-control">
+          <button id="prevMonth" class="arrow" type="button" aria-label="이전 달">‹</button>
+          <strong id="monthTitle">----</strong>
+          <button id="nextMonth" class="arrow" type="button" aria-label="다음 달">›</button>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:#238458"></i>신청 가능</span>
+        <span><i style="background:#C8C4BE"></i>마감</span>
+        <span><i style="background:#E67E22"></i>선택됨</span>
+      </div>
+      <div class="weekdays">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div id="calendar" class="calendar" aria-live="polite"></div>
+      <div id="calendarNotice" class="notice">신청 현황은 이 브라우저에 저장됩니다.</div>
+    </section>
+  </div>
+
+  <div class="bottom-grid" style="margin-top:16px">
+    <section class="panel">
+      <h3 class="panel-title">선택한 날짜</h3>
+      <p class="muted">선택한 날짜를 확인한 후 신청하세요.</p>
+      <div id="selectionEmpty" class="empty-text">선택한 날짜가 없습니다.</div>
+      <ul id="selectedList" class="selected-list"></ul>
+      <div class="total"><span>선택 날짜</span><strong id="totalCount">0일</strong></div>
+      <button id="submitBtn" class="btn primary full" type="button" disabled>신청 완료</button>
+      <div id="applyFeedback" class="feedback"></div>
+    </section>
+
+    <section class="panel">
+      <h3 class="panel-title">이용 안내</h3>
+      <ul class="rules">
+        <li>매월 1일 09:00에 다음 달 신청이 오픈됩니다.</li>
+        <li>익월 날짜만 신청할 수 있습니다.</li>
+        <li>하루에 한 명만 신청할 수 있습니다.</li>
+        <li>여러 날짜를 한 번에 선택할 수 있습니다.</li>
+        <li>관리자는 날짜별로 개방·마감을 변경할 수 있습니다.</li>
+      </ul>
+    </section>
+
+    <section class="panel admin-panel hidden" id="adminPanel">
+      <h3 class="panel-title">⚙ 관리자 설정</h3>
+      <p class="muted">관리자 비밀번호를 입력한 후 날짜를 변경하세요.</p>
+      <div id="adminLogin">
+        <div class="admin-grid">
+          <input id="adminPassword" type="806203" placeholder="관리자 비밀번호" autocomplete="current-password">
+          <button id="adminLoginBtn" class="btn light full" type="button">관리자 인증</button>
+        </div>
+      </div>
+      <div id="adminControls" class="admin-grid hidden">
+        <label for="adminDate">변경할 날짜</label>
+        <input id="adminDate" type="date">
+        <div class="admin-buttons">
+          <button id="openDayBtn" class="btn primary" type="button">날짜 열기</button>
+          <button id="closeDayBtn" class="btn light" type="button">날짜 마감</button>
+        </div>
+        <button id="adminLogoutBtn" class="btn outline full" type="button">관리자 로그아웃</button>
+      </div>
+      <div id="adminFeedback" class="feedback"></div>
+      <p class="muted">초기 관리자 비밀번호는 코드에서 변경하세요. 브라우저 전용 버전에서는 관리자 인증을 안전하게 보호할 수 없습니다.</p>
+    </section>
+  </div>
+</main>
+
+<footer>한의원 연월차 신청 시스템 · 개인정보를 다른 사람과 공유하지 마세요.</footer>
+<div id="toast" class="hidden" role="status"></div>
+
+<script>
+'use strict';
+
+/*
+ * 독립 실행형 버전
+ * - 저장소: 현재 브라우저의 localStorage
+ * - 실제 직원 인증/여러 기기 간 동기화/서버 선착순 보장은 제공하지 않음
+ * - 실서비스는 서버 측 DB 및 인증이 필요함
+ *
+ * 관리자 비밀번호는 브라우저 코드에서 누구나 확인할 수 있습니다.
+ * 데모용으로만 사용하세요.
+ */
+const ADMIN_PASSWORD = 'CHANGE_THIS_ADMIN_PASSWORD';
+
+const $ = id => document.getElementById(id);
+const STORE_KEY = 'clinicLeaveApp_v1';
+const SESSION_KEY = 'clinicLeaveSession_v1';
+
+const state = {
+  user: null,
+  admin: false,
+  selected: new Set(),
+  viewYear: 0,
+  viewMonth: 0,
+  records: { bookings: {}, overrides: {} }
+};
+
+const pad = n => String(n).padStart(2,'0');
+const keyOf = (y,m,d) => `${y}-${pad(m+1)}-${pad(d)}`;
+const parseKey = k => k.split('-').map(Number);
+const dateText = k => {
+  const [y,m,d] = parseKey(k);
+  return `${y}년 ${m}월 ${d}일`;
+};
+const monthText = (y,m) => `${y}년 ${m+1}월`;
+const targetMonth = () => {
+  const now = koreaNow();
+  const d = new Date(Date.UTC(now.y,now.m,1));
+  d.setUTCMonth(d.getUTCMonth()+1);
+  return {y:d.getUTCFullYear(),m:d.getUTCMonth()};
+};
+function koreaNow(){
+  const p = new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'
+  }).formatToParts(new Date());
+  const o = Object.fromEntries(p.map(x=>[x.type,x.value]));
+  return {y:+o.year,m:+o.month-1,d:+o.day};
+}
+function koreaClock(){
+  const p = new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  }).formatToParts(new Date());
+  return Object.fromEntries(p.map(x=>[x.type,x.value]));
+}
+function isRegularOpen(){
+  const n=koreaNow(), c=koreaClock();
+  return n.d>=1 && (+c.hour>9 || (+c.hour===9 && +c.minute>=0));
+}
+function isTarget(y,m){
+  const t=targetMonth();return y===t.y&&m===t.m;
+}
+function load(){
+  try{
+    const data=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    state.records={
+      bookings:data.bookings||{},
+      overrides:data.overrides||{}
+    };
+  }catch(e){
+    state.records={bookings:{},overrides:{}};
+  }
+  try{
+    state.user=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');
+  }catch(e){state.user=null;}
+}
+function save(){
+  localStorage.setItem(STORE_KEY,JSON.stringify(state.records));
+}
+function toast(message){
+  $('toast').textContent=message;
+  $('toast').classList.remove('hidden');
+  setTimeout(()=>$('toast').classList.add('hidden'),2800);
+}
+function feedback(id,message,type=''){
+  $(id).textContent=message;
+  $(id).className='feedback '+type;
+}
+function openForDate(key){
+  // 관리자 설정이 있으면 정기 오픈 규칙보다 우선합니다.
+  if(Object.prototype.hasOwnProperty.call(state.records.overrides,key)){
+    return state.records.overrides[key]===true;
+  }
+  return isRegularOpen();
+}
+function bookingFor(key){
+  return state.records.bookings[key]||null;
+}
+function renderLogin(){
+  const logged=!!state.user;
+  $('loginForm').classList.toggle('hidden',logged);
+  $('logoutBtn').classList.toggle('hidden',!logged);
+  if(logged){
+    feedback('loginFeedback',`${state.user.name}님 로그인 상태입니다.`,'success');
+  }else{
+    feedback('loginFeedback','이름과 휴대폰 번호를 입력해 로그인하세요.');
+  }
+  renderCalendar();
+}
+function renderCalendar(){
+  const {y,m}=state;
+  $('monthTitle').textContent=monthText(y,m);
+  $('targetLabel').textContent=monthText(targetMonth().y,targetMonth().m);
+  $('prevMonth').disabled=isTarget(y,m);
+  const cal=$('calendar');cal.replaceChildren();
+  const first=new Date(y,m,1).getDay();
+  const count=new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<first;i++){
+    const blank=document.createElement('div');
+    blank.className='day empty';cal.appendChild(blank);
+  }
+
+  for(let d=1;d<=count;d++){
+    const key=keyOf(y,m,d);
+    const booking=bookingFor(key);
+    const mine=!!(booking&&state.user&&booking.phone===state.user.phone);
+    const open=openForDate(key);
+    const full=!!booking||!open;
+    const eligible=isTarget(y,m);
+    const canSelect=!!state.user&&eligible&&open&&!booking;
+    const selected=state.selected.has(key);
+    const weekday=new Date(y,m,d).getDay();
+
+    const cell=document.createElement('article');
+    cell.className='day'+(selected?' selected':'')+
+      (weekday===0?' sunday':'')+(weekday===6?' saturday':'');
+
+    const num=document.createElement('div');
+    num.className='day-num';num.textContent=d;
+    cell.appendChild(num);
+
+    const desc=document.createElement('div');
+    desc.className='day-desc';
+    if(mine)desc.textContent='내 신청';
+    else if(booking)desc.textContent=`${booking.name} 신청 완료`;
+    else if(!eligible)desc.textContent='신청 대상 월 아님';
+    else if(!open)desc.textContent='신청 마감';
+    else desc.textContent='신청 가능';
+    cell.appendChild(desc);
+
+    const tag=document.createElement('div');
+    tag.className='day-tag';
+    if(mine){
+      tag.classList.add('mine');tag.textContent='내 신청';
+    }else if(full){
+      tag.textContent='마감';
+    }else{
+      tag.classList.add('open');tag.textContent='신청 가능';
+    }
+    cell.appendChild(tag);
+
+    if(!booking&&eligible){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='btn '+(selected?'light':'primary');
+      btn.textContent=selected?'선택 취소':'신청하기';
+      btn.disabled=!canSelect;
+      btn.addEventListener('click',()=>{
+        if(!canSelect)return;
+        if(state.selected.has(key))state.selected.delete(key);
+        else state.selected.add(key);
+        renderCalendar();
+      });
+      cell.appendChild(btn);
+    }
+    cal.appendChild(cell);
+  }
+
+  $('calendarNotice').textContent=!isRegularOpen()&&
+    !Object.values(state.records.overrides).some(v=>v===true)
+    ?'오픈 대기중 · 매월 1일 오전 9시에 신청이 활성화됩니다.'
+    :'익월 날짜를 선택할 수 있습니다. 마감된 날짜는 신청할 수 없습니다.';
+  renderSelection();
+}
+function renderSelection(){
+  const list=$('selectedList');list.replaceChildren();
+  const dates=[...state.selected].sort();
+  $('selectionEmpty').classList.toggle('hidden',dates.length>0);
+  for(const key of dates){
+    const li=document.createElement('li');
+    const span=document.createElement('span');span.textContent=dateText(key);
+    const remove=document.createElement('button');
+    remove.className='remove';remove.type='button';remove.textContent='삭제';
+    remove.addEventListener('click',()=>{
+      state.selected.delete(key);renderCalendar();
+    });
+    li.append(span,remove);list.appendChild(li);
+  }
+  $('totalCount').textContent=`${dates.length}일`;
+  $('submitBtn').disabled=!state.user||dates.length===0;
+}
+function renderCountdown(){
+  const now=new Date();
+  const n=koreaNow();
+  const clock=koreaClock();
+  const open=isRegularOpen();
+  if(open){
+    $('openMessage').textContent='현재 신청 오픈 시간입니다.';
+    $('openDateText').textContent='신청 가능한 익월 날짜를 선택하세요.';
+    $('countdown').innerHTML='<div class="open-title">신청 가능</div>';
+    return;
+  }
+
+  // 한국 시간 기준 다음 달 신청 오픈 시각
+  let y=n.y,m=n.m;
+  const dayStart=new Date(Date.UTC(y,m,1));
+  const monthNumber=dayStart.getUTCMonth();
+  const target=new Date(Date.UTC(y,monthNumber,1,0,0,0));
+  // 현재 월의 1일 09:00 KST는 전날 24:00 UTC입니다.
+  let openUtc=new Date(Date.UTC(y,m,1,0,0,0));
+  const kstNow=new Date(Date.UTC(n.y,n.m,n.d,+clock.hour-9,+clock.minute,+clock.second));
+  if(kstNow>=openUtc){
+    openUtc=new Date(Date.UTC(y,m+1,1,0,0,0));
+  }
+  const diff=Math.max(0,openUtc-kstNow);
+  const sec=Math.floor(diff/1000);
+  const vals=[
+    Math.floor(sec/86400),
+    Math.floor(sec%86400/3600),
+    Math.floor(sec%3600/60),
+    sec%60
+  ];
+  $('openMessage').textContent='오픈 대기중 · 신청 버튼이 비활성화되어 있습니다.';
+  const upcoming=targetMonth();
+  $('openDateText').textContent=`${monthText(upcoming.y,upcoming.m)} 신청을 준비 중입니다.`;
+  $('countdown').innerHTML='';
+  ['일','시간','분','초'].forEach((label,i)=>{
+    const box=document.createElement('div');box.className='timebox';
+    const strong=document.createElement('strong');
+    strong.textContent=String(vals[i]).padStart(2,'0');
+    const span=document.createElement('span');span.textContent=label;
+    box.append(strong,span);$('countdown').appendChild(box);
+  });
+}
+$('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('nameInput').value.trim();
+  const phone=$('phoneInput').value.replace(/[\s-]/g,'');
+  if(name.length<2||name.length>30){
+    feedback('loginFeedback','이름을 2~30자로 입력해 주세요.','error');return;
+  }
+  if(!/^01[016789]\d{7,8}$/.test(phone)){
+    feedback('loginFeedback','휴대폰 번호 형식을 확인해 주세요.','error');return;
+  }
+  state.user={name,phone};
+  sessionStorage.setItem(SESSION_KEY,JSON.stringify(state.user));
+  state.selected.clear();
+  renderLogin();
+  toast(`${name}님, 로그인되었습니다.`);
+});
+$('logoutBtn').addEventListener('click',()=>{
+  state.user=null;state.selected.clear();
+  sessionStorage.removeItem(SESSION_KEY);
+  renderLogin();
+});
+$('submitBtn').addEventListener('click',()=>{
+  if(!state.user||state.selected.size===0)return;
+  const dates=[...state.selected].sort();
+  if(!confirm(`${dates.map(dateText).join('\n')}\n총 ${dates.length}일을 신청할까요?`))return;
+
+  if(!isRegularOpen()&&!dates.every(openForDate)){
+    feedback('applyFeedback','아직 오픈 전입니다.','error');return;
+  }
+  // 신청 직전에 모든 날짜를 재검사합니다.
+  const conflicts=dates.filter(k=>!isTarget(...parseKey(k).slice(0,2).map((v,i)=>i===0?v:v-1))||
+    !!bookingFor(k)||!openForDate(k));
+  if(conflicts.length){
+    feedback('applyFeedback',`신청할 수 없는 날짜: ${conflicts.join(', ')}`,'error');
+    renderCalendar();return;
+  }
+  const now=Date.now();
+  dates.forEach(key=>{
+    state.records.bookings[key]={
+      name:state.user.name,
+      phone:state.user.phone,
+      timestamp:Math.floor(now/1000),
+      date:key
+    };
+  });
+  save();
+  state.selected.clear();
+  feedback('applyFeedback','신청이 완료되었습니다.','success');
+  renderCalendar();
+  toast('신청이 완료되었습니다.');
+});
+$('prevMonth').addEventListener('click',()=>{
+  if(isTarget(state.viewYear,state.viewMonth))return;
+  state.viewMonth--;
+  if(state.viewMonth<0){state.viewMonth=11;state.viewYear--;}
+  state.selected.clear();renderCalendar();
+});
+$('nextMonth').addEventListener('click',()=>{
+  state.viewMonth++;
+  if(state.viewMonth>11){state.viewMonth=0;state.viewYear++;}
+  state.selected.clear();renderCalendar();
+});
+$('adminToggle').addEventListener('click',()=>{
+  $('adminPanel').classList.toggle('hidden');
+  $('adminPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+$('adminLoginBtn').addEventListener('click',()=>{
+  const password=$('adminPassword').value;
+  if(password!==ADMIN_PASSWORD){
+    feedback('adminFeedback','관리자 비밀번호가 올바르지 않습니다.','error');return;
+  }
+  state.admin=true;
+  $('adminLogin').classList.add('hidden');
+  $('adminControls').classList.remove('hidden');
+  $('adminDate').value=keyOf(state.viewYear,state.viewMonth,1);
+  feedback('adminFeedback','관리자 모드가 활성화되었습니다.','success');
+});
+function setAdminDate(open){
+  if(!state.admin)return;
+  const key=$('adminDate').value;
+  if(!key){feedback('adminFeedback','날짜를 선택해 주세요.','error');return;}
+  if(!isTarget(...parseKey(key).slice(0,2).map((v,i)=>i===0?v:v-1))){
+    feedback('adminFeedback','익월 날짜만 변경할 수 있습니다.','error');return;
+  }
+  state.records.overrides[key]=open;
+  save();renderCalendar();
+  feedback('adminFeedback',`${key} 날짜를 ${open?'개방':'마감'}했습니다.`,'success');
+}
+$('openDayBtn').addEventListener('click',()=>setAdminDate(true));
+$('closeDayBtn').addEventListener('click',()=>setAdminDate(false));
+$('adminLogoutBtn').addEventListener('click',()=>{
+  state.admin=false;
+  $('adminLogin').classList.remove('hidden');
+  $('adminControls').classList.add('hidden');
+  $('adminPassword').value='';
+  feedback('adminFeedback','관리자 로그아웃 완료');
+});
+function init(){
+  load();
+  const t=targetMonth();
+  state.viewYear=t.y;state.viewMonth=t.m;
+  renderLogin();renderCountdown();
+  setInterval(()=>{
+    const target=targetMonth();
+    if(!isTarget(state.viewYear,state.viewMonth)){
+      state.viewYear=target.y;state.viewMonth=target.m;
+    }
+    renderCountdown();renderCalendar();
+  },1000);
+  // 다른 탭에서 변경된 localStorage도 반영합니다.
+  window.addEventListener('storage',()=>{
+    load();renderLogin();renderCountdown();
+  });
+}
+init();
+</script>
+</body>
+</html>
