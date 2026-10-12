@@ -538,4 +538,165 @@
         let buttonHtml = '';
         if (isPast) {
           if (cellData.closed) {
-            buttonHtml = `<span class="status-tag closed">사용
+            buttonHtml = `<span class="status-tag closed">사용 (${cellData.applicant})</span>`;
+          } else {
+            buttonHtml = `<span class="status-tag" style="color:#94A3B8;">사용 없음</span>`;
+          }
+        } else {
+          if (cellData.closed) {
+            buttonHtml = `
+              <span class="status-tag closed">마감 (${cellData.applicant})</span>
+              <button class="apply-btn" disabled>마감됨</button>
+            `;
+          } else {
+            const isDisabled = !isSystemOpen || !currentUser;
+            buttonHtml = `
+              <span class="status-tag open">${isSystemOpen ? '신청 가능' : '대기중'}</span>
+              <button class="apply-btn" ${isDisabled ? 'disabled' : ''} onclick="applyLeave('${dateStr}')">신청하기</button>
+            `;
+          }
+        }
+
+        // 관리자('원장님') 컨트롤: 열기, 마감, 직원 직접 등록
+        cell.innerHTML = `
+          <div class="day-number">${day}</div>
+          ${buttonHtml}
+          <div class="admin-controls" style="display:none;" id="admin-${dateStr}">
+            <button onclick="adminToggle('${dateStr}', false, ${isPast})">열기</button>
+            <button onclick="adminToggle('${dateStr}', true, ${isPast})">마감</button>
+            <button onclick="adminAssign('${dateStr}', ${isPast})" style="background:#FEF5ED; color:var(--primary-color); font-weight:bold;">직원등록</button>
+          </div>
+        `;
+        container.appendChild(cell);
+      }
+
+      if(currentUser && currentUser.name === '원장님') {
+        document.querySelectorAll('.admin-controls').forEach(el => el.style.display = 'flex');
+      }
+    }
+
+    function handleLogin() {
+      const name = document.getElementById('userName').value.trim();
+      const phone = document.getElementById('userPhone').value.trim();
+
+      if (!name || !phone) {
+        alert("이름과 휴대폰 번호를 모두 입력해 주세요.");
+        return;
+      }
+
+      currentUser = { name, phone };
+      document.getElementById('display-name').innerText = name;
+      document.getElementById('auth-form').style.display = 'none';
+      document.getElementById('login-btn').style.display = 'none';
+      document.getElementById('user-info').style.display = 'flex';
+
+      alert(`${name}님 환영합니다!`);
+      renderCalendar();
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('auth-form').style.display = 'grid';
+      document.getElementById('login-btn').style.display = 'block';
+      document.getElementById('user-info').style.display = 'none';
+      renderCalendar();
+    }
+
+    // 관리자 수동 열기/마감
+    function adminToggle(dateStr, closeState, isPast) {
+      const targetStatus = isPast ? dateStatusPast : dateStatusCurrent;
+      if(!targetStatus[dateStr]) targetStatus[dateStr] = {};
+      targetStatus[dateStr].closed = closeState;
+      targetStatus[dateStr].applicant = closeState ? "관리자마감" : null;
+      renderCalendar();
+    }
+
+    // 관리자 특정 직원 직접 등록 기능
+    async function adminAssign(dateStr, isPast) {
+      const employeeName = prompt(`[관리자] ${dateStr}에 연차로 등록할 직원의 이름을 입력하세요:`);
+      if (!employeeName || employeeName.trim() === "") return;
+
+      const targetStatus = isPast ? dateStatusPast : dateStatusCurrent;
+      targetStatus[dateStr] = { closed: true, applicant: employeeName.trim() };
+      renderCalendar();
+
+      // 구글 시트 전송
+      const payload = {
+        timestamp: new Date().toISOString(),
+        name: employeeName.trim() + " (원장님등록)",
+        phone: "관리자지정",
+        date: dateStr
+      };
+
+      if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+        alert(`[등록 완료] ${dateStr에} ${employeeName.trim()}님이 지정되었습니다.`);
+        return;
+      }
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        alert(`[등록 완료] ${dateStr}에 ${employeeName.trim()}님이 성공적으로 등록되었습니다.`);
+        fetchReservations();
+      } catch (error) {
+        console.error(error);
+        alert("등록은 되었으나 구글 시트 전송 중 오류가 발생했습니다.");
+      }
+    }
+
+    // 일반 직원 연차 신청
+    async function applyLeave(dateStr) {
+      if (!currentUser) {
+        alert("먼저 상단에서 직원 인증을 완료해 주세요.");
+        return;
+      }
+      if (!isSystemOpen) {
+        alert("아직 신청 오픈 시간이 아닙니다.");
+        return;
+      }
+      if (dateStatusCurrent[dateStr] && dateStatusCurrent[dateStr].closed) {
+        alert("이미 마감된 날짜입니다.");
+        return;
+      }
+
+      if (!confirm(`${dateStr} 날짜로 연차를 신청하시겠습니까?`)) return;
+
+      dateStatusCurrent[dateStr] = { closed: true, applicant: currentUser.name };
+      renderCalendar();
+
+      const payload = {
+        timestamp: new Date().toISOString(),
+        name: currentUser.name,
+        phone: currentUser.phone,
+        date: dateStr
+      };
+
+      if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+        alert(`[신청 완료] ${dateStr} 연차 신청이 완료되었습니다.`);
+        return;
+      }
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        alert(`[신청 완료] ${dateStr} 연차 신청이 성공적으로 접수되었습니다.`);
+        fetchReservations();
+      } catch (error) {
+        console.error(error);
+        alert("신청은 완료되었으나 데이터 전송 중 오류가 발생했습니다.");
+      }
+    }
+
+    startCountdownTimer();
+    fetchReservations();
+  </script>
+</body>
+</html>
