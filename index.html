@@ -192,6 +192,32 @@
       font-size: 0.9rem;
     }
 
+    /* 상단 탭 (이번달 / 지난달) */
+    .tab-menu {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      background: #FFFFFF;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
     /* 관리자 컨트롤 */
     .admin-controls {
       background: #F8FAFC;
@@ -244,7 +270,7 @@
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 10px 6px;
-      min-height: 105px;
+      min-height: 110px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -307,7 +333,7 @@
       .container { padding: 0 12px; margin-top: 20px; }
       .auth-grid { grid-template-columns: 1fr; }
       .calendar-grid { gap: 4px; }
-      .day-cell { padding: 6px 2px; min-height: 95px; }
+      .day-cell { padding: 6px 2px; min-height: 100px; }
       .day-number { font-size: 0.8rem; }
       .apply-btn { font-size: 0.7rem; padding: 5px 0; }
     }
@@ -327,9 +353,9 @@
       <div class="card-title">연월차 신청 규정</div>
       <div class="rule-box">
         <ul>
-          <li><strong>오픈 일정:</strong> 매월 1일 오전 09:00 정각 자동 오픈 (타이머 연동)</li>
+          <li><strong>오픈 일정:</strong> 매월 1일 오전 09:00 정각 자동 오픈</li>
           <li><strong>신청 제한:</strong> 하루 최대 1명 선착순 (1인당 여러 날짜 중복 신청 가능)</li>
-          <li><strong>인증 방식:</strong> 성함과 휴대폰 번호 입력 후 즉시 신청 (이름이 '원장님'일 경우 관리자 권한 활성화)</li>
+          <li><strong>관리자 권한:</strong> '원장님'으로 로그인 시 모든 날짜 수동 오픈 및 마감 가능</li>
         </ul>
       </div>
     </div>
@@ -346,7 +372,7 @@
       <div id="auth-form" class="auth-grid">
         <div class="input-group">
           <label for="userName">이름 (아이디)</label>
-          <input type="text" id="userName" placeholder="예: 홍길동 (관리자는 원장님 입력)">
+          <input type="text" id="userName" placeholder="예: 홍길동 (관리자는 원장님)">
         </div>
         <div class="input-group">
           <label for="userPhone">휴대폰 번호</label>
@@ -361,11 +387,16 @@
       </div>
     </div>
 
-    <!-- 달력 섹션 -->
+    <!-- 달력 섹션 및 탭 -->
     <div class="card">
+      <div class="tab-menu">
+        <button class="tab-btn active" id="tab-current" onclick="switchTab('current')">📅 12월 (이번 달) 신청</button>
+        <button class="tab-btn" id="tab-past" onclick="switchTab('past')">📜 11월 (지난 달) 내역 조회</button>
+      </div>
+
       <div class="calendar-header">
         <h3 id="calendar-title">2026년 12월 월차 신청</h3>
-        <span style="font-size: 0.85rem; color: var(--primary-color); font-weight: 600;">● 하루 1명 선착순 (중복 신청 가능)</span>
+        <span id="calendar-badge" style="font-size: 0.85rem; color: var(--primary-color); font-weight: 600;">● 하루 1명 선착순</span>
       </div>
 
       <div class="calendar-grid">
@@ -388,13 +419,15 @@
     const GAS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
     let currentUser = null;
-    let isSystemOpen = false; // 타이머 연동 오픈 여부
-    let dateStatus = {};
+    let isSystemOpen = false;
+    let currentTab = 'current'; // 'current': 12월, 'past': 11월
+    
+    let dateStatusCurrent = {}; // 12월 데이터
+    let dateStatusPast = {};    // 11월 데이터 (지난 달)
 
-    // [설정] 오픈 목표 일시 지정 (예: 2026년 11월 1일 오전 9시 00분 00초)
     const targetOpenTime = new Date("2026-11-01T09:00:00").getTime();
 
-    // 실시간 타이머 작동
+    // 타이머
     function startCountdownTimer() {
       const banner = document.getElementById('status-banner');
       const bannerText = document.getElementById('banner-text');
@@ -426,7 +459,7 @@
       }, 1000);
     }
 
-    // 구글 시트에서 기존 신청 내역 실시간 동기화
+    // 구글 시트에서 전체 데이터 불러오기 (이번달 / 지난달 분류)
     async function fetchReservations() {
       if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
         renderCalendar();
@@ -438,21 +471,40 @@
         const result = await response.json();
         
         if (result && Array.isArray(result.data)) {
-          dateStatus = {}; // 초기화 후 반영
+          dateStatusCurrent = {};
+          dateStatusPast = {};
+
           result.data.forEach(row => {
             const applicantName = row[1];
-            const appliedDate = row[3]; // 예: "2026-12-10"
+            const appliedDate = row[3]; // 예: "2026-12-10" 또는 "2026-11-05"
             
             if (appliedDate) {
-              dateStatus[appliedDate] = {
-                closed: true,
-                applicant: applicantName
-              };
+              if (appliedDate.startsWith("2026-12")) {
+                dateStatusCurrent[appliedDate] = { closed: true, applicant: applicantName };
+              } else if (appliedDate.startsWith("2026-11")) {
+                dateStatusPast[appliedDate] = { closed: true, applicant: applicantName };
+              }
             }
           });
         }
       } catch (error) {
-        console.error("신청 내역을 불러오는 중 오류가 발생했습니다.", error);
+        console.error("데이터 로드 중 오류 발생", error);
+      }
+      renderCalendar();
+    }
+
+    // 탭 전환
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-current').className = tab === 'current' ? 'tab-btn active' : 'tab-btn';
+      document.getElementById('tab-past').className = tab === 'past' ? 'tab-btn active' : 'tab-btn';
+      
+      if (tab === 'current') {
+        document.getElementById('calendar-title').innerText = "2026년 12월 월차 신청";
+        document.getElementById('calendar-badge').innerText = "● 하루 1명 선착순";
+      } else {
+        document.getElementById('calendar-title').innerText = "2026년 11월 월차 내역 조회";
+        document.getElementById('calendar-badge').innerText = "조회 전용";
       }
       renderCalendar();
     }
@@ -462,60 +514,76 @@
       const container = document.getElementById('calendar-days');
       container.innerHTML = '';
 
-      // 12월 1일은 화요일 (빈 셀 2개)
-      for (let i = 0; i < 2; i++) {
+      const isPast = (currentTab === 'past');
+      const targetStatus = isPast ? dateStatusPast : dateStatusCurrent;
+      const totalDays = isPast ? 30 : 31; // 11월은 30일, 12월은 31일
+      const startDayOffset = isPast ? 0 : 2; // 11월 1일 일요일 기준(예시), 12월 1일 화요일(2)
+
+      // 빈 셀 채우기
+      for (let i = 0; i < startDayOffset; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'day-cell empty';
         container.appendChild(emptyCell);
       }
 
-      const totalDays = 31;
       for (let day = 1; day <= totalDays; day++) {
-        const dateStr = `2026-12-${day < 10 ? '0' + day : day}`;
-        const dayOfWeek = (day + 1) % 7;
+        const monthStr = isPast ? '11' : '12';
+        const dateStr = `2026-${monthStr}-${day < 10 ? '0' + day : day}`;
+        const dayOfWeek = (day + startDayOffset) % 7;
 
-        if(!dateStatus[dateStr]) {
-          dateStatus[dateStr] = { closed: false, applicant: null };
+        if(!targetStatus[dateStr]) {
+          targetStatus[dateStr] = { closed: false, applicant: null };
         }
 
-        const cellData = dateStatus[dateStr];
+        const cellData = targetStatus[dateStr];
         const cell = document.createElement('div');
         cell.className = 'day-cell';
         if (dayOfWeek === 0) cell.classList.add('sun');
         if (dayOfWeek === 6) cell.classList.add('sat');
 
         let buttonHtml = '';
-        if (cellData.closed) {
-          buttonHtml = `
-            <span class="status-tag closed">마감 (${cellData.applicant})</span>
-            <button class="apply-btn" disabled>마감됨</button>
-          `;
+        if (isPast) {
+          // 지난 달은 조회만 가능
+          if (cellData.closed) {
+            buttonHtml = `<span class="status-tag closed">사용 (${cellData.applicant})</span>`;
+          } else {
+            buttonHtml = `<span class="status-tag" style="color:#94A3B8;">사용 없음</span>`;
+          }
         } else {
-          const isDisabled = !isSystemOpen || !currentUser;
-          buttonHtml = `
-            <span class="status-tag open">${isSystemOpen ? '신청 가능' : '대기중'}</span>
-            <button class="apply-btn" ${isDisabled ? 'disabled' : ''} onclick="applyLeave('${dateStr}')">신청하기</button>
-          `;
+          // 이번 달은 신청 가능
+          if (cellData.closed) {
+            buttonHtml = `
+              <span class="status-tag closed">마감 (${cellData.applicant})</span>
+              <button class="apply-btn" disabled>마감됨</button>
+            `;
+          } else {
+            const isDisabled = !isSystemOpen || !currentUser;
+            buttonHtml = `
+              <span class="status-tag open">${isSystemOpen ? '신청 가능' : '대기중'}</span>
+              <button class="apply-btn" ${isDisabled ? 'disabled' : ''} onclick="applyLeave('${dateStr}')">신청하기</button>
+            `;
+          }
         }
 
+        // 관리자('원장님') 컨트롤 (이번 달/지난 달 모두 수동 열기/마감 가능)
         cell.innerHTML = `
           <div class="day-number">${day}</div>
           ${buttonHtml}
           <div class="admin-controls" style="display:none;" id="admin-${dateStr}">
-            <button onclick="adminToggle('${dateStr}', false)">열기</button>
-            <button onclick="adminToggle('${dateStr}', true)">마감</button>
+            <button onclick="adminToggle('${dateStr}', false, ${isPast})">열기</button>
+            <button onclick="adminToggle('${dateStr}', true, ${isPast})">마감</button>
           </div>
         `;
         container.appendChild(cell);
       }
 
-      // 관리자('원장님') 로그인 시 수동 제어 버튼 노출
+      // 관리자 로그인 시 컨트롤 노출
       if(currentUser && currentUser.name === '원장님') {
         document.querySelectorAll('.admin-controls').forEach(el => el.style.display = 'flex');
       }
     }
 
-    // 직원 인증
+    // 로그인
     function handleLogin() {
       const name = document.getElementById('userName').value.trim();
       const phone = document.getElementById('userPhone').value.trim();
@@ -543,15 +611,16 @@
       renderCalendar();
     }
 
-    // 관리자 수동 열기/마감
-    function adminToggle(dateStr, closeState) {
-      if(!dateStatus[dateStr]) dateStatus[dateStr] = {};
-      dateStatus[dateStr].closed = closeState;
-      dateStatus[dateStr].applicant = closeState ? "관리자마감" : null;
+    // 관리자 수동 열기/마감 기능
+    function adminToggle(dateStr, closeState, isPast) {
+      const targetStatus = isPast ? dateStatusPast : dateStatusCurrent;
+      if(!targetStatus[dateStr]) targetStatus[dateStr] = {};
+      targetStatus[dateStr].closed = closeState;
+      targetStatus[dateStr].applicant = closeState ? "관리자마감" : null;
       renderCalendar();
     }
 
-    // 연차 신청 (구글 시트 저장)
+    // 연차 신청
     async function applyLeave(dateStr) {
       if (!currentUser) {
         alert("먼저 상단에서 직원 인증을 완료해 주세요.");
@@ -561,15 +630,14 @@
         alert("아직 신청 오픈 시간이 아닙니다.");
         return;
       }
-      if (dateStatus[dateStr] && dateStatus[dateStr].closed) {
+      if (dateStatusCurrent[dateStr] && dateStatusCurrent[dateStr].closed) {
         alert("이미 마감된 날짜입니다.");
         return;
       }
 
-      if (!confirm(`${dateStr} 날짜로 연차를 신청하시겠습니까? (중복 신청 가능)`)) return;
+      if (!confirm(`${dateStr} 날짜로 연차를 신청하시겠습니까?`)) return;
 
-      // 로컬 즉시 반영
-      dateStatus[dateStr] = { closed: true, applicant: currentUser.name };
+      dateStatusCurrent[dateStr] = { closed: true, applicant: currentUser.name };
       renderCalendar();
 
       const payload = {
@@ -592,14 +660,13 @@
           body: JSON.stringify(payload)
         });
         alert(`[신청 완료] ${dateStr} 연차 신청이 성공적으로 접수되었습니다.`);
-        fetchReservations(); // 최신 내역 동기화
+        fetchReservations();
       } catch (error) {
         console.error(error);
         alert("신청은 완료되었으나 데이터 전송 중 오류가 발생했습니다.");
       }
     }
 
-    // 초기 실행: 타이머 시작 및 기존 신청 내역 로드
     startCountdownTimer();
     fetchReservations();
   </script>
