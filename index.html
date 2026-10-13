@@ -486,7 +486,7 @@
       }, 1000);
     }
 
-// 구글 시트에서 전체 기록을 불러와 최신 상태를 완벽하게 반영하는 함수
+// 구글 시트에서 최신 상태를 정확하게 불러오는 함수
     async function fetchReservations() {
       if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
         renderCalendar();
@@ -501,7 +501,6 @@
           dateStatusCurrent = {};
           dateStatusPast = {};
 
-          // 시트의 데이터는 시간순(오래된 것 -> 최신 것)으로 정렬되어 들어옴
           result.data.forEach(row => {
             const applicantName = row[1]; // 이름 또는 상태
             const phoneOrTag = row[2];    // 전화번호 또는 태그
@@ -511,13 +510,12 @@
               let isClosed = true;
               let nameVal = applicantName;
 
-              // 관리자가 '열기'를 눌러 취소한 경우
-              if (phoneOrTag === "관리자열기" || applicantName === "열림(취소됨)") {
+              // 관리자가 '열기'를 눌러 취소했거나 빈 상태로 만든 경우
+              if (phoneOrTag === "관리자열기" || applicantName === "열림(취소됨)" || !applicantName) {
                 isClosed = false;
                 nameVal = null;
               }
 
-              // 최신 기록이 기존 기록을 자연스럽게 덮어쓰도록 설정
               if (appliedDate.startsWith("2026-12")) {
                 dateStatusCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
               } else if (appliedDate.startsWith("2026-11")) {
@@ -531,21 +529,6 @@
       }
       renderCalendar();
     }
-    function switchTab(tab) {
-      currentTab = tab;
-      document.getElementById('tab-current').className = tab === 'current' ? 'tab-btn active' : 'tab-btn';
-      document.getElementById('tab-past').className = tab === 'past' ? 'tab-btn active' : 'tab-btn';
-      
-      if (tab === 'current') {
-        document.getElementById('calendar-title').innerText = "2026년 12월 월차 신청";
-        document.getElementById('calendar-badge').innerText = "● 하루 1명 선착순";
-      } else {
-        document.getElementById('calendar-title').innerText = "2026년 11월 월차 내역 조회";
-        document.getElementById('calendar-badge').innerText = "조회 전용";
-      }
-      renderCalendar();
-    }
-
     function renderCalendar() {
       const container = document.getElementById('calendar-days');
       container.innerHTML = '';
