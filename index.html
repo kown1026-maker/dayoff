@@ -415,7 +415,7 @@
   </div>
 
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxYw8Upu_EObRPPmwstEJp0S9Ja9tGIkRx8FvnnT0pE7M1VkcN9Myy3LLjY-NnbmOKtBw/exec";
 
     // [설정] 관리자(원장님) 전용 비밀번호를 여기서 변경하세요!
     const ADMIN_PASSWORD = "1234"; 
@@ -488,7 +488,7 @@
 
 // 구글 시트에서 최신 상태를 정확하게 불러오는 함수
     async function fetchReservations() {
-      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxYw8Upu_EObRPPmwstEJp0S9Ja9tGIkRx8FvnnT0pE7M1VkcN9Myy3LLjY-NnbmOKtBw/exec") {
         renderCalendar();
         return;
       }
@@ -656,7 +656,7 @@
         action: "toggle"
       };
 
-      if (GAS_WEB_APP_URL !== "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
+      if (GAS_WEB_APP_URL !== "https://script.google.com/macros/s/AKfycbxYw8Upu_EObRPPmwstEJp0S9Ja9tGIkRx8FvnnT0pE7M1VkcN9Myy3LLjY-NnbmOKtBw/exec") {
         try {
           await fetch(GAS_WEB_APP_URL, {
             method: "POST",
@@ -686,7 +686,7 @@
         date: dateStr
       };
 
-      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxYw8Upu_EObRPPmwstEJp0S9Ja9tGIkRx8FvnnT0pE7M1VkcN9Myy3LLjY-NnbmOKtBw/exec") {
         alert(`[등록 완료] ${dateStr}에 ${employeeName.trim()}님이 지정되었습니다.`);
         return;
       }
@@ -732,7 +732,7 @@
         date: dateStr
       };
 
-      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxYw8Upu_EObRPPmwstEJp0S9Ja9tGIkRx8FvnnT0pE7M1VkcN9Myy3LLjY-NnbmOKtBw/exec") {
         alert(`[신청 완료] ${dateStr} 연차 신청이 완료되었습니다.`);
         return;
       }
