@@ -415,7 +415,7 @@
   </div>
 
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQR2PW_RP9b9JLvMG35dD_jwintt1j3P6vNMOsZo3Nzn9lZJ7fJ_KsQxvpQaVBsHeMJw/exec";
+    const GAS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
 
     // [설정] 관리자(원장님) 전용 비밀번호를 여기서 변경하세요!
     const ADMIN_PASSWORD = "1234"; 
@@ -486,7 +486,7 @@
       }, 1000);
     }
 
-    async function fetchReservations() {
+async function fetchReservations() {
       if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
         renderCalendar();
         return;
@@ -497,8 +497,8 @@
         const result = await response.json();
         
         if (result && Array.isArray(result.data)) {
-          dateStatusCurrent = {};
-          dateStatusPast = {};
+          let loadedCurrent = {};
+          let loadedPast = {};
 
           result.data.forEach(row => {
             const applicantName = row[1];
@@ -509,16 +509,30 @@
               let isClosed = true;
               let nameVal = applicantName;
 
-              if (phoneOrTag === "관리자열기") {
+              // 관리자가 열기(취소)를 누른 경우 처리
+              if (phoneOrTag === "관리자열기" || applicantName === "열림(취소됨)") {
                 isClosed = false;
                 nameVal = null;
               }
 
               if (appliedDate.startsWith("2026-12")) {
-                dateStatusCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
+                loadedCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
               } else if (appliedDate.startsWith("2026-11")) {
-                dateStatusPast[appliedDate] = { closed: isClosed, applicant: nameVal };
+                loadedPast[appliedDate] = { closed: isClosed, applicant: nameVal };
               }
+            }
+          });
+
+          // 기존 로컬 조작 상태를 유지하면서 시트 데이터 반영 (초기화 방지)
+          Object.keys(loadedCurrent).forEach(date => {
+            if (!dateStatusCurrent[date] || !dateStatusCurrent[date].isLocallyUpdated) {
+              dateStatusCurrent[date] = loadedCurrent[date];
+            }
+          });
+
+          Object.keys(loadedPast).forEach(date => {
+            if (!dateStatusPast[date] || !dateStatusPast[date].isLocallyUpdated) {
+              dateStatusPast[date] = loadedPast[date];
             }
           });
         }
