@@ -415,7 +415,7 @@
   </div>
 
   <script>
-    const GAS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec";
 
     // [설정] 관리자(원장님) 전용 비밀번호를 여기서 변경하세요!
     const ADMIN_PASSWORD = "1234"; 
@@ -488,7 +488,7 @@
 
 // 구글 시트에서 전체 기록을 불러와 최신 상태를 완벽하게 반영하는 함수
     async function fetchReservations() {
-      if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
         renderCalendar();
         return;
       }
@@ -703,7 +703,7 @@
         date: dateStr
       };
 
-      if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
         alert(`[등록 완료] ${dateStr}에 ${employeeName.trim()}님이 지정되었습니다.`);
         return;
       }
@@ -749,7 +749,7 @@
         date: dateStr
       };
 
-      if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+      if (GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbynxhYDPKUKxI_UoNRcy7B20XzbsRk0atxysXxMkRBam84k2zUmBdrns1IbP4b026bDRw/exec") {
         alert(`[신청 완료] ${dateStr} 연차 신청이 완료되었습니다.`);
         return;
       }
