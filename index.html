@@ -488,13 +488,12 @@
 
 // 구글 시트 캐시를 무력화하고 항상 최신 데이터를 실시간으로 가져오는 함수
     async function fetchReservations() {
-      if (GAS_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE")) {
+      if (GAS_WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbyGhNuGAdyCqdlILXYoNGYGHWyL0RPHd8rGPTH3WsihuUb1H3PphpigEXPvtL1tGW6laQ/exec")) {
         renderCalendar();
         return;
       }
 
       try {
-        // 주소 뒤에 현재 시간을 붙여서 브라우저/구글 서버 캐시를 강제로 우회함 (새로고침 초기화 방지 핵심!)
         const noCacheUrl = GAS_WEB_APP_URL + "?t=" + new Date().getTime();
         const response = await fetch(noCacheUrl);
         const result = await response.json();
@@ -503,21 +502,15 @@
           dateStatusCurrent = {};
           dateStatusPast = {};
 
-          // 시트에 기록된 전체 행을 순회하며 최신 상태 갱신
           result.data.forEach(row => {
-            const applicantName = row[1]; 
+            const applicantName = row[1]; // 정제된 이름
             const phoneOrTag = row[2];    
-            const appliedDate = row[3];   
-            
-            if (appliedDate) {
-              let isClosed = true;
-              let nameVal = applicantName;
+            const appliedDate = row[3];   // 날짜
+            const statusFlag = row[4];    // "CLOSED" 또는 "OPEN"
 
-              // 관리자가 열기를 눌렀거나 비어있는 경우
-              if (phoneOrTag === "관리자열기" || applicantName === "열림(취소됨)" || !applicantName) {
-                isClosed = false;
-                nameVal = null;
-              }
+            if (appliedDate) {
+              const isClosed = (statusFlag === "CLOSED");
+              const nameVal = isClosed ? applicantName : null;
 
               if (appliedDate.startsWith("2026-12")) {
                 dateStatusCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
