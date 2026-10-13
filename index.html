@@ -486,7 +486,8 @@
       }, 1000);
     }
 
-async function fetchReservations() {
+// 구글 시트에서 전체 기록을 불러와 최신 상태를 완벽하게 반영하는 함수
+    async function fetchReservations() {
       if (GAS_WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
         renderCalendar();
         return;
@@ -497,42 +498,31 @@ async function fetchReservations() {
         const result = await response.json();
         
         if (result && Array.isArray(result.data)) {
-          let loadedCurrent = {};
-          let loadedPast = {};
+          dateStatusCurrent = {};
+          dateStatusPast = {};
 
+          // 시트의 데이터는 시간순(오래된 것 -> 최신 것)으로 정렬되어 들어옴
           result.data.forEach(row => {
-            const applicantName = row[1];
-            const phoneOrTag = row[2];
-            const appliedDate = row[3];
+            const applicantName = row[1]; // 이름 또는 상태
+            const phoneOrTag = row[2];    // 전화번호 또는 태그
+            const appliedDate = row[3];   // 날짜 (예: 2026-12-10)
             
             if (appliedDate) {
               let isClosed = true;
               let nameVal = applicantName;
 
-              // 관리자가 열기(취소)를 누른 경우 처리
+              // 관리자가 '열기'를 눌러 취소한 경우
               if (phoneOrTag === "관리자열기" || applicantName === "열림(취소됨)") {
                 isClosed = false;
                 nameVal = null;
               }
 
+              // 최신 기록이 기존 기록을 자연스럽게 덮어쓰도록 설정
               if (appliedDate.startsWith("2026-12")) {
-                loadedCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
+                dateStatusCurrent[appliedDate] = { closed: isClosed, applicant: nameVal };
               } else if (appliedDate.startsWith("2026-11")) {
-                loadedPast[appliedDate] = { closed: isClosed, applicant: nameVal };
+                dateStatusPast[appliedDate] = { closed: isClosed, applicant: nameVal };
               }
-            }
-          });
-
-          // 기존 로컬 조작 상태를 유지하면서 시트 데이터 반영 (초기화 방지)
-          Object.keys(loadedCurrent).forEach(date => {
-            if (!dateStatusCurrent[date] || !dateStatusCurrent[date].isLocallyUpdated) {
-              dateStatusCurrent[date] = loadedCurrent[date];
-            }
-          });
-
-          Object.keys(loadedPast).forEach(date => {
-            if (!dateStatusPast[date] || !dateStatusPast[date].isLocallyUpdated) {
-              dateStatusPast[date] = loadedPast[date];
             }
           });
         }
@@ -541,7 +531,6 @@ async function fetchReservations() {
       }
       renderCalendar();
     }
-
     function switchTab(tab) {
       currentTab = tab;
       document.getElementById('tab-current').className = tab === 'current' ? 'tab-btn active' : 'tab-btn';
